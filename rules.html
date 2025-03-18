@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Overzicht Drugsmarkt App - Scouts Bosspel</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            color: #333;
+        }
+        h1 {
+            color: #2e7d32;
+            border-bottom: 2px solid #4caf50;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #2e7d32;
+            margin-top: 20px;
+            border-left: 4px solid #4caf50;
+            padding-left: 10px;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 20px 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f0f9f0;
+            font-weight: bold;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        ul {
+            padding-left: 20px;
+        }
+        li {
+            margin-bottom: 8px;
+        }
+        .highlight {
+            background-color: #ffffcc;
+            padding: 2px 4px;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Overzicht Drugsmarkt App - Scouts Bosspel</h1>
+    
+    <h2>Drugs en hun waardes</h2>
+    <table>
+        <tr>
+            <th>Drug</th>
+            <th>Min Prijs</th>
+            <th>Max Prijs</th>
+            <th>Startprijs</th>
+            <th>Eenheid</th>
+        </tr>
+        <tr>
+            <td>Cocaïne</td>
+            <td>70 €</td>
+            <td>150 €</td>
+            <td>100 €</td>
+            <td>gram</td>
+        </tr>
+        <tr>
+            <td>XTC</td>
+            <td>10 €</td>
+            <td>25 €</td>
+            <td>15 €</td>
+            <td>pil</td>
+        </tr>
+        <tr>
+            <td>MDMA</td>
+            <td>20 €</td>
+            <td>50 €</td>
+            <td>30 €</td>
+            <td>gram</td>
+        </tr>
+        <tr>
+            <td>Heroïne</td>
+            <td>50 €</td>
+            <td>120 €</td>
+            <td>80 €</td>
+            <td>gram</td>
+        </tr>
+    </table>
+    
+    <h2>Prijsfluctuaties</h2>
+    <ul>
+        <li><strong>Normale prijsverandering</strong>: -20% tot +20% van de huidige prijs</li>
+        <li><strong>Bij minimum prijs</strong>: Geforceerde stijging van 0% tot +20%</li>
+        <li><strong>Bij maximum prijs</strong>: Geforceerde daling van 0% tot -20%</li>
+        <li><strong>Prijsupdate interval</strong>: Elke 5 minuten (xx:00, xx:05, xx:10, xx:15, enz.)</li>
+        <li><strong>Extreme prijswijziging</strong>: Om de 15 minuten (xx:00, xx:15, xx:30, xx:45) bij één willekeurige drug
+            <ul>
+                <li>Deze drug krijgt een extreme prijs dicht bij het minimum (5-10% van de range) of maximum (90-95% van de range)</li>
+                <li>Creëert kans op uitzonderlijke winst of verlies voor spelers</li>
+            </ul>
+        </li>
+    </ul>
+    
+    <h2>Synchronisatie</h2>
+    <ul>
+        <li>Alle spelers zien dezelfde prijzen op hetzelfde moment</li>
+        <li>Synchronisatie gebaseerd op het huidige 5-minuten tijdsinterval</li>
+        <li>De seeded random generator zorgt voor identieke "willekeurige" prijzen op alle apparaten</li>
+    </ul>
+    
+    <h2>Geschiedenis en Grafieken</h2>
+    <ul>
+        <li><strong>Geschiedenis</strong>: Laatste 5 prijsupdates worden bijgehouden</li>
+        <li><strong>Grafiekbalken</strong>: Hoogte toont de relatieve prijs tussen min en max</li>
+        <li><strong>Gemiddelde lijn</strong>: Rode horizontale lijn op gemiddelde van de laatste 5 prijzen</li>
+    </ul>
+    
+    <h2>Testmodus</h2>
+    <ul>
+        <li>Druk op 'U' voor onmiddellijke prijsupdate (Test-functie)</li>
+        <li>In testmodus worden echte willekeurige waarden gebruikt (niet seeded)</li>
+        <li>Testmodus beïnvloedt niet de synchronisatie tussen spelers in echt spel</li>
+    </ul>
+    
+    <h2>Tips voor spelleiders</h2>
+    <ul>
+        <li>Bij de start van het spel: Begin bij voorkeur vlak na een 5-minuten interval</li>
+        <li>Advies: Neem een extra tablet/telefoon mee voor het geval er problemen zijn</li>
+        <li>Alternatief: Druk zelf enkele versies van de site af als backup</li>
+    </ul>
+</body>
+</html>
