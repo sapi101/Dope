@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scouts Bosspel - Drugsmarkt</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        header {
+            background-color: #2e7d32;
+            color: white;
+            padding: 15px;
+            text-align: center;
+            border-radius: 8px 8px 0 0;
+        }
+        .timer-container {
+            background-color: #4caf50;
+            color: white;
+            padding: 10px;
+            text-align: center;
+            margin-bottom: 20px;
+            border-radius: 0 0 8px 8px;
+        }
+        .drugs-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        .drug-card {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            transition: transform 0.3s;
+            margin-bottom: 15px;
+        }
+        .drug-card:hover {
+            transform: translateY(-5px);
+        }
+        .drug-name {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #333;
+        }
+        .drug-price {
+            font-size: 24px;
+            font-weight: bold;
+            color: #e53935;
+            margin: 10px 0;
+        }
+        .price-trend {
+            font-size: 14px;
+            margin-top: 5px;
+        }
+        .up {
+            color: green;
+        }
+        .down {
+            color: red;
+        }
+        .unchanged {
+            color: gray;
+        }
+        .footer {
+            margin-top: 30px;
+            text-align: center;
+            font-size: 12px;
+            color: #666;
+        }
+        .price-chart {
+            margin-top: 15px;
+            height: 60px;
+            width: 100%;
+            display: flex;
+            align-items: flex-end;
+            gap: 4px;
+            position: relative;
+        }
+        .price-bar {
+            flex-grow: 1;
+            background-color: #4caf50;
+            transition: height 0.3s;
+            position: relative;
+        }
+        .price-bar:hover::after {
+            content: attr(data-price) '€';
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-size: 10px;
+            white-space: nowrap;
+        }
+        .average-line {
+            position: absolute;
+            width: 100%;
+            height: 1px;
+            background-color: #e53935;
+            z-index: 1;
+        }
+        @media (max-width: 600px) {
+            .drugs-container {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Scouts Bosspel - Drugsmarkt</h1>
+            <p>Koop laag, verkoop hoog!</p>
+        </header>
+        
+        <div class="timer-container">
+            <h2>Volgende prijsupdate in: <span id="timer">5:00</span></h2>
+        </div>
+        
+        <div class="drugs-container" id="drugs-container">
+            <!-- Drug cards will be added here dynamically -->
+        </div>
+        
+        <div class="footer">
+            <p>Gemaakt voor het 80 jaar Scouts Bosspel</p>
+        </div>
+    </div>
+
+    <script>
+        // Drugs data with initial prices
+        const drugsData = [
+            { 
+                name: "Cocaïne", 
+                price: 100, 
+                previousPrice: 100, 
+                description: "Wit poeder (bloempoeder)",
+                minPrice: 70,
+                maxPrice: 150,
+                unit: "gram",
+                history: Array(5).fill(100)
+            },
+            { 
+                name: "XTC", 
+                price: 15, 
+                previousPrice: 15, 
+                description: "Pillen (frisks)",
+                minPrice: 10,
+                maxPrice: 25,
+                unit: "pil",
+                history: Array(5).fill(15)
+            },
+            { 
+                name: "MDMA", 
+                price: 30, 
+                previousPrice: 30, 
+                description: "Kristallen (kandij suikerklonten)",
+                minPrice: 20,
+                maxPrice: 50,
+                unit: "gram",
+                history: Array(5).fill(30)
+            },
+            { 
+                name: "Heroïne", 
+                price: 80, 
+                previousPrice: 80, 
+                description: "Bruine poeder (bruine suiker)",
+                minPrice: 50,
+                maxPrice: 120,
+                unit: "gram",
+                history: Array(5).fill(80)
+            }
+        ];
+
+        // Generate a deterministic "random" number based on a seed
+        function seededRandom(seed) {
+            const a = 1664525;
+            const c = 1013904223;
+            const m = Math.pow(2, 32);
+            
+            // Get a value between 0 and 1
+            seed = (a * seed + c) % m;
+            return seed / m;
+        }
+
+        // Function to generate HTML for price bar chart
+        function generatePriceBarChart(drug) {
+            // Calculate the min and max in history for scaling
+            const minPrice = drug.minPrice;
+            const maxPrice = drug.maxPrice;
+            const range = maxPrice - minPrice;
+            
+            // Calculate average of the last 5 prices
+            const average = drug.history.reduce((sum, price) => sum + price, 0) / drug.history.length;
+            const averagePercentage = ((average - minPrice) / range) * 100;
+            
+            // Generate HTML for each price bar
+            const bars = drug.history.map(price => {
+                // Calculate height percentage based on price range
+                const percentage = ((price - minPrice) / range) * 100;
+                // Create bar with height based on percentage
+                return `<div class="price-bar" 
+                            style="height: ${percentage}%;" 
+                            data-price="${price.toFixed(2)}">
+                        </div>`;
+            }).join('');
+            
+            // Add the average line
+            const averageLine = `<div class="average-line" style="bottom: ${averagePercentage}%;" title="Gemiddelde: ${average.toFixed(2)}€"></div>`;
+            
+            return bars + averageLine;
+        }
+
+        // Function to render drug cards
+        function renderDrugCards() {
+            const drugsContainer = document.getElementById('drugs-container');
+            drugsContainer.innerHTML = '';
+            
+            drugsData.forEach(drug => {
+                const priceDiff = drug.price - drug.previousPrice;
+                const trend = priceDiff > 0 
+                    ? `<span class="up">↑ +${priceDiff.toFixed(2)} €</span>` 
+                    : priceDiff < 0 
+                        ? `<span class="down">↓ ${priceDiff.toFixed(2)} €</span>` 
+                        : `<span class="unchanged">→ 0.00 €</span>`;
+                
+                const card = document.createElement('div');
+                card.className = 'drug-card';
+                card.innerHTML = `
+                    <div class="drug-name">${drug.name}</div>
+                    <div class="drug-description">${drug.description}</div>
+                    <div class="drug-price">${drug.price.toFixed(2)} € / ${drug.unit}</div>
+                    <div class="price-trend">
+                        Trend: ${trend}
+                    </div>
+                    <div class="price-range" style="margin-top: 10px; font-size: 12px; color: #666;">
+                        Range: ${drug.minPrice.toFixed(2)} € - ${drug.maxPrice.toFixed(2)} €
+                    </div>
+                    <div class="price-chart" id="${drug.name.toLowerCase()}-chart">
+                        ${generatePriceBarChart(drug)}
+                    </div>
+                `;
+                drugsContainer.appendChild(card);
+            });
+            
+            // Update charts with new data
+            drugsData.forEach(drug => {
+                const chartElement = document.getElementById(`${drug.name.toLowerCase()}-chart`);
+                if (chartElement) {
+                    chartElement.innerHTML = generatePriceBarChart(drug);
+                }
+            });
+        }
+
+        // Function to update prices based on time
+        function updatePrices() {
+            const now = new Date();
+            // Get number of 5-minute intervals since epoch
+            const intervalCount = Math.floor(now.getTime() / (5 * 60 * 1000));
+            
+            // Check if this is a 15-minute mark (every 3rd 5-minute interval)
+            const isExtremeEvent = intervalCount % 3 === 0;
+            
+            // If it's a 15-minute mark, choose one drug for extreme price change
+            let extremeDrugIndex = -1;
+            if (isExtremeEvent) {
+                // Use seeded random to choose which drug gets the extreme price
+                extremeDrugIndex = Math.floor(seededRandom(intervalCount) * 4);
+            }
+            
+            drugsData.forEach((drug, index) => {
+                drug.previousPrice = drug.price;
+                
+                // Determine if this drug gets the extreme price change
+                if (isExtremeEvent && index === extremeDrugIndex) {
+                    // Extreme price change (either very high or very low)
+                    const goHigh = seededRandom(intervalCount + 100) > 0.5;
+                    
+                    if (goHigh) {
+                        // Go to 90-95% of maximum
+                        const targetPercentage = 0.9 + (seededRandom(intervalCount + 200) * 0.05);
+                        drug.price = drug.minPrice + (drug.maxPrice - drug.minPrice) * targetPercentage;
+                    } else {
+                        // Go to 5-10% of range (close to minimum)
+                        const targetPercentage = 0.05 + (seededRandom(intervalCount + 200) * 0.05);
+                        drug.price = drug.minPrice + (drug.maxPrice - drug.minPrice) * targetPercentage;
+                    }
+                } else {
+                    // Normal price update
+                    // Use a deterministic seed based on drug index and time interval
+                    const seed = intervalCount * 1000 + index * 100;
+                    const randomValue = seededRandom(seed);
+                    
+                    // Check if we're at min or max price to force movement away from boundary
+                    if (drug.price <= drug.minPrice) {
+                        // Force price up if we're at minimum
+                        const changePercent = (randomValue * 0.2); // 0% to 20% increase
+                        const newPrice = drug.price * (1 + changePercent);
+                        drug.price = Math.min(drug.maxPrice, newPrice);
+                    } else if (drug.price >= drug.maxPrice) {
+                        // Force price down if we're at maximum
+                        const changePercent = (randomValue * 0.2); // 0% to 20% decrease
+                        const newPrice = drug.price * (1 - changePercent);
+                        drug.price = Math.max(drug.minPrice, newPrice);
+                    } else {
+                        // Normal fluctuation when in the middle range
+                        const changePercent = (randomValue * 0.4) - 0.2; // -20% to 20% change
+                        const newPrice = drug.price * (1 + changePercent);
+                        drug.price = Math.max(drug.minPrice, Math.min(drug.maxPrice, newPrice));
+                    }
+                }
+                
+                // Round to 2 decimal places
+                drug.price = Math.round(drug.price * 100) / 100;
+                
+                // Update price history
+                drug.history.push(drug.price);
+                if (drug.history.length > 5) {
+                    drug.history.shift(); // Remove oldest price
+                }
+            });
+            
+            renderDrugCards();
+        }
+
+        // Timer functionality
+        let timerInterval;
+
+        function updateTimer() {
+            const now = new Date();
+            
+            // Calculate time until next 5-minute mark
+            const minutesSinceHour = now.getMinutes() % 5;
+            const secondsSinceMinute = now.getSeconds();
+            
+            const minutesRemaining = 4 - minutesSinceHour;
+            const secondsRemaining = 59 - secondsSinceMinute;
+            
+            document.getElementById('timer').textContent = 
+                `${minutesRemaining}:${secondsRemaining.toString().padStart(2, '0')}`;
+            
+            // If we're at a 5-minute mark (XX:00, XX:05, XX:10, etc.), update prices
+            if (minutesRemaining === 4 && secondsRemaining === 59) {
+                updatePrices();
+            }
+        }
+
+        // Initialize the app
+        function initApp() {
+            // Initial price set based on current time
+            updatePrices();
+            renderDrugCards();
+            
+            // Update timer every second
+            timerInterval = setInterval(updateTimer, 1000);
+            
+            // Testing shortcut - 'u' key forces immediate update with random seed
+            document.addEventListener('keydown', function(event) {
+                if (event.key === 'u') {
+                    // Use a random seed for testing instead of time-based
+                    drugsData.forEach((drug, index) => {
+                        drug.previousPrice = drug.price;
+                        
+                        // Generate truly random value for testing
+                        const randomValue = Math.random();
+                        
+                        // Check if we're at min or max price to force movement away from boundary
+                        if (drug.price <= drug.minPrice) {
+                            const changePercent = (randomValue * 0.2);
+                            const newPrice = drug.price * (1 + changePercent);
+                            drug.price = Math.min(drug.maxPrice, newPrice);
+                        } else if (drug.price >= drug.maxPrice) {
+                            const changePercent = (randomValue * 0.2);
+                            const newPrice = drug.price * (1 - changePercent);
+                            drug.price = Math.max(drug.minPrice, newPrice);
+                        } else {
+                            const changePercent = (randomValue * 0.4) - 0.2;
+                            const newPrice = drug.price * (1 + changePercent);
+                            drug.price = Math.max(drug.minPrice, Math.min(drug.maxPrice, newPrice));
+                        }
+                        
+                        // Round to 2 decimal places
+                        drug.price = Math.round(drug.price * 100) / 100;
+                        
+                        // Update price history
+                        drug.history.push(drug.price);
+                        if (drug.history.length > 5) {
+                            drug.history.shift();
+                        }
+                    });
+                    
+                    renderDrugCards();
+                }
+            });
+        }
+
+        // Start the app when page loads
+        window.onload = initApp;
+    </script>
+</body>
+</html>
